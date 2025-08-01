@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horas Trabajadas</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f7f7f7;
+      padding: 10px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    input[type="time"] {
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .resultado {
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      font-size: 18px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .total {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .small {
+      font-size: 12px;
+      color: #666;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 12px;
+        padding: 4px;
+      }
+
+      button {
+        font-size: 16px;
+        padding: 10px;
+      }
+
+      .total {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Horas Trabajadas</h2>
+
+  <table id="horasTable">
+    <thead>
+      <tr>
+        <th>Día</th>
+        <th>Entrada 1</th>
+        <th>Salida 1</th>
+        <th>Entrada 2</th>
+        <th>Salida 2</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="tablaBody">
+      <!-- Se llena por JavaScript -->
+    </tbody>
+  </table>
+
+  <button onclick="calcularHoras()">Calcular Total</button>
+
+  <div class="total" id="totalMes">Total del mes: 0 horas</div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const tbody = document.getElementById("tablaBody");
+
+      for (let i = 1; i <= 31; i++) {
+        const fila = document.createElement("tr");
+
+        const celdaDia = document.createElement("td");
+        celdaDia.textContent = i;
+        fila.appendChild(celdaDia);
+
+        for (let j = 0; j < 4; j++) {
+          const celda = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "time";
+          celda.appendChild(input);
+          fila.appendChild(celda);
+        }
+
+        const celdaResultado = document.createElement("td");
+        celdaResultado.className = "resultado";
+        fila.appendChild(celdaResultado);
+
+        tbody.appendChild(fila);
+      }
+    });
+
+    function calcularHoras() {
+      let totalMesDecimal = 0;
+      const filas = document.querySelectorAll("#horasTable tbody tr");
+
+      filas.forEach(fila => {
+        const inputs = fila.querySelectorAll("input");
+        const resultadoTd = fila.querySelector(".resultado");
+
+        const tiempos = Array.from(inputs).map(input => input.value);
+
+        let totalDiaDecimal = 0;
+
+        for (let i = 0; i < tiempos.length; i += 2) {
+          const inicio = tiempos[i];
+          const fin = tiempos[i + 1];
+
+          if (inicio && fin) {
+            const horas = calcularDiferenciaHoras(inicio, fin);
+            totalDiaDecimal += horas;
+          }
+        }
+
+        const [h, m] = convertirADecimalAHorasMinutos(totalDiaDecimal);
+        resultadoTd.innerHTML = `${totalDiaDecimal.toFixed(2)} h <div class="small">(${h}h ${m}m)</div>`;
+        totalMesDecimal += totalDiaDecimal;
+      });
+
+      const [hTot, mTot] = convertirADecimalAHorasMinutos(totalMesDecimal);
+      document.getElementById("totalMes").innerHTML = `Total del mes: ${totalMesDecimal.toFixed(2)} horas <div class="small">(${hTot}h ${mTot}m)</div>`;
+    }
+
+    function calcularDiferenciaHoras(inicio, fin) {
+      const [h1, m1] = inicio.split(":").map(Number);
+      const [h2, m2] = fin.split(":").map(Number);
+
+      let fechaInicio = new Date(0, 0, 0, h1, m1);
+      let fechaFin = new Date(0, 0, 0, h2, m2);
+
+      if (fechaFin <= fechaInicio) {
+        fechaFin.setDate(fechaFin.getDate() + 1);
+      }
+
+      const diff = (fechaFin - fechaInicio) / (1000 * 60 * 60);
+      return diff;
+    }
+
+    function convertirADecimalAHorasMinutos(decimal) {
+      const horas = Math.floor(decimal);
+      const minutos = Math.round((decimal - horas) * 60);
+      return [horas, minutos];
+    }
+  </script>
+
+</body>
+</html>
